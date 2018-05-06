@@ -3,6 +3,7 @@
 #include<vector>
 #include <iostream>
 #include <fstream>
+//#include <jpeglib.h>
 
 using namespace cimg_library;
 using namespace std;
@@ -14,6 +15,8 @@ class imagenes{
 		float promedio;
 		float desviacion;
 
+		int cantidad_f;
+
 		CImg<float>    imagen;
 		// vector<float>  caract;   //vector caracteristico de cada imagen
 		float caract[2]       = {};   //vector caracteristico de cada imagen
@@ -22,7 +25,7 @@ class imagenes{
 		// int numero_imagenes = 4;         //numero de imagenes en el archivo
 
 		//El 2 es el numero de imagenes que tendra la base de datos
-		float array_imagenes[2][4];         //Aqui se guardan los vectores de las imagenes
+		float array_imagenes[200][4];         //Aqui se guardan los vectores de las imagenes
 		string         nombre_archivo;          //nombre del archivo
 		vector<string> nombre_imagenes;
 
@@ -36,6 +39,7 @@ class imagenes{
 		float get_promedio();
 		float get_desviacion();
 		void generar(string archivo,int num);
+		void gen(string archivo,int num);
 
 };
 
@@ -76,7 +80,7 @@ void imagenes::Haar_Wavelet(int nivel)
 	promedio = imagen.mean();
 	// desviacion = imagen.std();
 
-	imagen.display();
+	//imagen.display();
 }
 
 void imagenes::vector_Caracteristica(int temp)
@@ -91,14 +95,18 @@ void imagenes::vector_Caracteristica(int temp)
 	caract[2] = promedio;
 	caract[3] = desviacion;
 
+	/*
 	cout<<"Temp: "<<temp<<endl;
 	for(int i=0; i<4; i++)
 		cout<<caract[i]<<"  ";
+	*/
 
 	array_imagenes[temp][0] = caract[0];
 	array_imagenes[temp][1] = caract[1];
 	array_imagenes[temp][2] = caract[2];
 	array_imagenes[temp][3] = caract[3];
+
+	cout << "["<<caract[0] <<","<< caract[1] << "," << caract[2] << "," << caract[3] << "]" <<endl;
 
 	 // caract[4] = {};
 
@@ -154,10 +162,29 @@ void imagenes:: generar(string archivo,int nivel)
 	while(!file.eof()){
 		file.getline(buffer,1000);
 		nombre_imagenes.push_back(buffer);
+		temp++;
 	}
 	file.close();
+	cantidad_f = temp;
+	//cout << cantidad_f;
 
 	for (int i = 0; i < nombre_imagenes.size()-1; ++i)
+	{
+		insertar(nombre_imagenes[i]);
+		Haar_Wavelet(nivel);
+		// temp++;
+		vector_Caracteristica(i);
+	}
+
+
+}
+
+void imagenes:: gen(string archivo,int nivel)
+{
+
+	nombre_imagenes.push_back(archivo);
+
+	for (int i = 0; i < nombre_imagenes.size(); ++i)
 	{
 		insertar(nombre_imagenes[i]);
 		Haar_Wavelet(nivel);

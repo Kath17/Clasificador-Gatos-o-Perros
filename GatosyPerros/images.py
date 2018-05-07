@@ -25,9 +25,9 @@ class Images:
     def ResizeImage(self, img):
         mat = cv2.imread(img)
         self.imagen = cv2.resize(mat, (256, 256))
-        cv2.imshow('Imagen 256x256',self.imagen)
+        #cv2.imshow('Imagen 256x256',self.imagen) #Mostar img
         # print("matriz:",self.imagen)
-        print("matriz:",self.imagen.shape)
+        #print("matriz:",self.imagen.shape)
         return self.imagen
 
     #                             -------------------
@@ -68,8 +68,8 @@ class Images:
 
         #Juntamos los haar de los tres canales, para formar una unica imagen
         self.imagen2 = cv2.merge([b,g,r])
-        cv2.imshow('haar:',self.imagen2)
-        print("imagen2:", self.imagen2.shape)
+        #cv2.imshow('haar:',self.imagen2) #Mostar haar
+        #print("imagen2:", self.imagen2.shape)
 
         # compute coefficients
         # coeffs = pywt.dwt2(fimage, "haar", level=1)
@@ -80,7 +80,7 @@ class Images:
         self.HaarWavelet(self.imagen2)
         self.HaarWavelet(self.imagen2)
 
-    def VectorCaracterístico(self, nombre):
+    def VectorCaracteristico(self, nombre):
         resized = self.ResizeImage(nombre)
         self.Haar_level3(resized)
 
@@ -99,36 +99,37 @@ class Images:
         #Promedios B,G,R
         prom, desv = cv2.meanStdDev(self.imagen2)
         prom = prom[:3]
-        print("promedios:",prom)
+        #print("promedios:",prom)
 
         #Desviacion Estandar B,G,R
         desv = desv[:3]
-        print("desviaciones:",desv)
+        #print("desviaciones:",desv)
 
         self.vectorC=[]
         self.vectorC.extend( (minB,minG,minR,maxB,maxG,maxR))
         self.vectorC.extend((prom[0][0],prom[1][0],prom[2][0]))
         self.vectorC.extend((desv[0][0],desv[1][0],desv[2][0]))
 
-        print("vector carac:",self.vectorC)
+        #print("vector carac:",self.vectorC)
 
-    def FeatureVectors(self,archivo):
-        f = open(archivo,"r")
-        print("archivo:",archivo)
-        for line in f:
-            self.vectorc = []
-            self.VectorCaracterístico(line.rstrip('\n'))
+    def FeatureVectors(self,archivos):
+        #f = open(archivo,"r")
+        #print("archivo:",archivo
+        #for line in f:
+        self.FVector=[]
+        for line in archivos:
+            self.VectorCaracteristico(line)
             self.FVector.append(self.vectorC)
         print(self.FVector)
         return self.FVector
 
-vect = Images()
+#vect = Images()
 # vect.AbrirImagen("gato1.jpg")
 # vect.ResizeImage("gato1.jpg")
 # vect.HaarWavelet(vect.imagen)
 # vect.Haar_level3(vect.imagen)
-# vect.VectorCaracterístico("gato3.jpg")
-VectorGatos = vect.FeatureVectors("gatos.txt")
+# vect.VectorCaracteristico("gato3.jpg")
+#VectorGatos = vect.FeatureVectors("gatos.txt")
 # gatos.txt (Para entrenar -> Son 10)
 # perros.txt (Para entrenar -> Son 10)
 # cat.txt (Para testear -> Son 5)

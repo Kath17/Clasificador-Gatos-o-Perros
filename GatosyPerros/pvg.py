@@ -1,16 +1,25 @@
 from tkinter import *
 from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askdirectory
 from tkinter.messagebox import showerror
 
 from PIL import ImageTk, Image
 import os
+import glob
 import ast
 from sklearn import svm
 
+from itertools import repeat
+
+from images import Images
+
+
 class Clasificador:
 
+    #Interfaz
     ventana = None
-    clf = None
+
+    canvas = None
 
     entrenar = None
     predecir = None
@@ -23,18 +32,34 @@ class Clasificador:
     abrirf_enty = None
     abrirf = None
 
-
-    tipo = None
-    tipo_l = None
     imagen = None
 
     directorio = None
     directoriof = None
 
+    animal1_str = None
+    animal1_label = None
+    animal1_entry = None
+
+    animal2_str = None
+    animal2_label = None
+    animal2_entry = None
+
+    guardar = None
+
+    #Datos
+    clf = None
     x=[]
     y=[]
 
-    predecir=[]
+    paraPredecir=[]
+    predicho=[]
+
+    ImagenVC = Images()
+    animales=[]
+    vals = [-1,1]
+    pos_vals = 0
+    cant_max = 2
 
     def __init__(self):
         self.ventana = Tk()
@@ -44,107 +69,171 @@ class Clasificador:
         self.abrir_label = Label(self.ventana, text="Entrenamiento").place(x=10,y=10)
         self.directorio = StringVar()
         self.abrir_enty = Entry(self.ventana,textvariable=self.directorio, state='readonly',width=60).place(x=120,y=10)
-        self.abrir = Button(self.ventana,text="Seleccionar",command=self.abrirArchivo)
+        self.abrir = Button(self.ventana,text="Seleccionar",command=self.abrirArchivo,state='disabled')
         self.abrir.place(x=680,y=10)
 
 
         self.abrirf_label = Label(self.ventana, text="Foto").place(x=10,y=40)
         self.directoriof = StringVar()
         self.abrirf_enty = Entry(self.ventana,textvariable=self.directoriof, state='readonly',width=60).place(x=120,y=40)
-        self.abrirf = Button(self.ventana,text="Seleccionar",command=self.abrirfoto)
+        self.abrirf = Button(self.ventana,text="Seleccionar",command=self.abrirfoto,state='disabled')
         self.abrirf.place(x=680,y=40)
 
-
-
-        self.tipo_l = Label(self.ventana, text="Tipo")
-        self.tipo_l.place(x=10,y=70)
-        self.tipo = Spinbox(values=(-1, 1),width=10)
-        self.tipo.place(x=120,y=70)
-
-        self.entrenar = Button(self.ventana,text="Entrenar",command=self.entrenar)
+        self.entrenar = Button(self.ventana,text="Entrenar",command=self.entrenar,state='disabled')
         self.entrenar.place(x=10,y=550)
-        self.predecir = Button(self.ventana,text="Predecir",command=self.predecir)
+        self.predecir = Button(self.ventana,text="Predecir",command=self.predecir,state='disabled')
         self.predecir.place(x=120,y=550)
+
+        self.animal1_str = StringVar()
+        self.animal1_label = Label(self.ventana,text="Animal 1").place(x=10,y=70)
+        self.animal1_entry = Entry(self.ventana,textvariable=self.animal1_str,width=20)
+        self.animal1_entry.place(x=120,y=70)
+
+        self.animal2_str = StringVar()
+        self.animal2_label = Label(self.ventana,text="Animal 2").place(x=390,y=70)
+        self.animal2_entry = Entry(self.ventana,textvariable=self.animal2_str,width=20)
+        self.animal2_entry.place(x=480,y=70)
+
+        self.guardar = Button(self.ventana,text="Guardar",command=self.nombres)
+        self.guardar.place(x=680,y=70)
+
+
+
+        # create the canvas, size in pixels
+        self.canvas = Canvas(self.ventana,width=400, height=400)
+        self.canvas.place(x=200,y=120 )
+
+
         self.ventana.mainloop()
 
+    def nombres(self):
+        if(self.animal1_str.get()!="" and self.animal2_str.get()!=""):
+            self.animales.append(self.animal1_str.get())
+            self.animales.append( self.animal2_str.get() )
+            self.animal1_entry.config(state='readonly')
+            self.animal2_entry.config(state='readonly')
+            print(self.animales)
+            self.abrir.config(state="normal")
+            self.abrir.config(text=self.animales[self.pos_vals])
+            self.guardar.config(text="Guardado")
+            self.guardar.config(state="disabled")
 
-    def caracteristicas(self,archivo,valor):
-        arch = open(archivo,"r")
-        lineas = arch.readlines()
+        else:
+            showerror("Nombre de animales","Ingrese nombres correctos.")
 
-        for i in lineas:
-            self.x.append(ast.literal_eval(i))
-            self.y.append(valor)
+    def caracteristicas(self,directorio):
+        print(self.imagenesDirectorio(directorio))
+        FV = self.ImagenVC.FeatureVectors(self.imagenesDirectorio(directorio))
+        self.x.extend(FV)
+        self.y.extend( repeat( self.vals[self.pos_vals]  , len(FV) ) )
+        self.pos_vals = self.pos_vals+1
+        if( self.pos_vals < self.cant_max):
+            self.abrir.config(text=self.animales[self.pos_vals])
+        else:
+            self.abrir.config(text="Listo")
+            self.entrenar.config(state="normal")
+
+
 
     def caracteristicasFoto(self,archivo):
-        arch = open(archivo,"r")
-        lineas = arch.readlines()
-        #for i in lineas:
-        #    self.predecir.append(ast.literal_eval(i))
-        print(lineas)
-        car = ast.literal_eval(lineas[0])
-        print([car])
-        self.predecir = [car]
+        self.ImagenVC.VectorCaracteristico(archivo)
+        self.paraPredecir.append([self.ImagenVC.vectorC])
+        #print(self.paraPredecir)
+        #print(lineas)
+        #car = ast.literal_eval(lineas[0])
+        #print([car])
+        #self.predecir = [car]
 
     def entrenar(self):
-        self.clf = svm.SVC()
-        self.clf.fit(self.x, self.y)
-        print(self.clf)
+        if(len(self.x) > 0 and len(self.y) > 0 and len(self.animales) > 0):
+            self.clf = svm.SVC()
+            self.clf.fit(self.x, self.y)
+            print(self.clf)
+            self.abrirf.config(state="normal")
+            self.predecir.config(state="normal")
+        else:
+            showerror("Entrenar","Seleccione los directorios")
 
     def predecir(self):
-        print(self.clf.predict(self.predecir))
+        if( len(self.paraPredecir) > 0 ):
+            #Ultimo elemento de paraPredecir
+            predicho = self.clf.predict( self.paraPredecir[-1] )[0]
+            self.predicho.append( predicho  )
+            self.printPredichoLabel(predicho)
+        else:
+            showerror("Predecir","Primero Ingrese una foto para entrenar.")
+
+    def printPredichoLabel(self,predicho):
+        for an in range(0, len(self.vals)):
+            if( predicho == self.vals[an]):
+                clasif = "Es un "+self.animales[an]
+                self.canvas.create_text(120,330,text=clasif,font=("Arial",30))
+                break
+
+    def printPredicho(self):
+        for i in self.predicho:
+            for an in range (0, len(self.vals) ):
+                if( i == self.vals[an]):
+                    print(i,": Es un ", self.animales[an])
+                    break
 
     def abrirArchivo(self):
-        self.ventana.withdraw()
-        #self.ventana.iconify() # we don't want a full GUI, so keep the root window from appearing
-        filename = askopenfilename( filetypes=(
-                                            ("Archivos de Texto", "*.txt"),
-                                            ("Archivos de Imagen", "*.jpg"),
-                                            ("All files", "*.*")
-                                           )
-        ) # show an "Open" dialog box and return the path to the selected file
 
-        if filename:
-            try:
-                print(filename)
-                self.directorio.set( filename )
-                self.caracteristicas(filename, int(self.tipo.get()) )
+        if( self.pos_vals < self.cant_max and len(self.animales)>0):
+            self.ventana.withdraw()
+            directory = askdirectory()
+            self.ventana.deiconify()
+            if directory:
+                try:
+                    print(directory)
+                    self.directorio.set(directory)
+                    self.caracteristicas(directory)
 
-            except:                     # <- naked except is a bad idea
-                showerror("Open Source File", "Failed to read file\n'%s'" % filename)
-                #return
-        self.ventana.deiconify()
+                except:
+                    showerror("Abrir Directorio","No se puede abrir el directorio\n'%s'"%directory)
+        else:
+            showerror("Nombres de los animales","Ingrese el nombre de los animales")
+
 
 
     def abrirfoto(self):
         self.ventana.withdraw()
         #self.ventana.iconify() # we don't want a full GUI, so keep the root window from appearing
         filename = askopenfilename( filetypes=(
-                                            ("Archivos de Texto", "*.txt"),
                                             ("Archivos de Imagen", "*.jpg"),
                                             ("All files", "*.*")
                                            )
         ) # show an "Open" dialog box and return the path to the selected file
-
+        self.ventana.deiconify()
         if filename:
             try:
                 print(filename)
-                self.directoriof.set( filename )
+                self.directoriof.set(filename)
                 self.caracteristicasFoto(filename)
 
             except:                     # <- naked except is a bad idea
                 showerror("Open Source File", "Failed to read file\n'%s'" % filename)
                 #return
-        self.ventana.deiconify()
+
+        self.mostrarFoto(filename)
+
+    def mostrarFoto(self,archivo):
+        # load the .gif image file
+        image = Image.open(archivo)
+        image = image.resize((400, 400), Image.ANTIALIAS)
+        imag = ImageTk.PhotoImage(image)
+
+        # put gif image on canvas
+        # pic's upper left corner (NW) on the canvas is at x=50 y=10
+        self.canvas.image = imag
+        self.canvas.create_image(0, 0, image=imag, anchor=NW)
 
 
-            #
 
 
-    def mostrarImagen(self):
-        img = ImageTk.PhotoImage(Image.open(self.filename))
-        panel = Label(self.ventana, image = img)
-        panel.pack(side = "bottom", fill = "both", expand = "yes")
+    def imagenesDirectorio(self,dir):
+        return glob.glob(dir+"/*.jpg")
+
 
 if __name__ == '__main__':
 

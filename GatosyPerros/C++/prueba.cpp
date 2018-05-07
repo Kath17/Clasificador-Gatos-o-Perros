@@ -1,3 +1,4 @@
+#include <cstdio>
 #include "CImg.h"
 #include "imagenes.h"
 //Para compilar: g++ -std=c++11 prueba.cpp -o main -L/usr/X11R6/lib -lm -lpthread -lX11

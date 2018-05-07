@@ -13,6 +13,9 @@ class Images:
     # Vector característica
     vectorC = []
 
+    #Vector de vectores
+    FVector = []
+
     def AbrirImagen(self, name):
         #carga imagen
         self.img = cv2.imread(name)
@@ -78,7 +81,7 @@ class Images:
         self.HaarWavelet(self.imagen2)
 
     def VectorCaracterístico(self, nombre):
-        resized = vect.ResizeImage(nombre)
+        resized = self.ResizeImage(nombre)
         self.Haar_level3(resized)
 
         # print("Imagen con haar:",self.imagen2)
@@ -102,15 +105,31 @@ class Images:
         desv = desv[:3]
         print("desviaciones:",desv)
 
+        self.vectorC=[]
         self.vectorC.extend( (minB,minG,minR,maxB,maxG,maxR))
         self.vectorC.extend((prom[0][0],prom[1][0],prom[2][0]))
         self.vectorC.extend((desv[0][0],desv[1][0],desv[2][0]))
 
         print("vector carac:",self.vectorC)
 
+    def FeatureVectors(self,archivo):
+        f = open(archivo,"r")
+        print("archivo:",archivo)
+        for line in f:
+            self.vectorc = []
+            self.VectorCaracterístico(line.rstrip('\n'))
+            self.FVector.append(self.vectorC)
+        print(self.FVector)
+        return self.FVector
+
 vect = Images()
-vect.AbrirImagen("gato1.jpg")
+# vect.AbrirImagen("gato1.jpg")
 # vect.ResizeImage("gato1.jpg")
 # vect.HaarWavelet(vect.imagen)
 # vect.Haar_level3(vect.imagen)
-vect.VectorCaracterístico("gato1.jpg")
+# vect.VectorCaracterístico("gato3.jpg")
+VectorGatos = vect.FeatureVectors("gatos.txt")
+# gatos.txt (Para entrenar -> Son 10)
+# perros.txt (Para entrenar -> Son 10)
+# cat.txt (Para testear -> Son 5)
+# dog.txt (Para testear -> Son 5)

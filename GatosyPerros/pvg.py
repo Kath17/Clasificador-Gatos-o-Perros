@@ -3,7 +3,7 @@ from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import askdirectory
 from tkinter.messagebox import showerror
 
-from PIL import ImageTk, Image
+from PIL import ImageTk, Image, ImageDraw, ImageFont
 import os
 import glob
 import ast
@@ -23,6 +23,7 @@ class Clasificador:
 
     entrenar = None
     predecir = None
+    predecir_batch = None
 
     abrir_label = None
     abrir_enty = None
@@ -36,6 +37,8 @@ class Clasificador:
 
     directorio = None
     directoriof = None
+    directorio_tanda = "tanda/"
+    fnt = ImageFont.truetype("arial.ttf", 30)
 
     animal1_str = None
     animal1_label = None
@@ -52,6 +55,7 @@ class Clasificador:
     x=[]
     y=[]
 
+    entrenado = False
     paraPredecir=[]
     predicho=[]
 
@@ -79,10 +83,13 @@ class Clasificador:
         self.abrirf = Button(self.ventana,text="Seleccionar",command=self.abrirfoto,state='disabled')
         self.abrirf.place(x=680,y=40)
 
-        self.entrenar = Button(self.ventana,text="Entrenar",command=self.entrenar,state='disabled')
+        self.entrenar = Button(self.ventana,text="Entrenar",command=self.entrenarSVM,state='disabled')
         self.entrenar.place(x=10,y=550)
-        self.predecir = Button(self.ventana,text="Predecir",command=self.predecir,state='disabled')
+        self.predecir = Button(self.ventana,text="Predecir",command=self.predecirSVM,state='disabled')
         self.predecir.place(x=120,y=550)
+
+        self.predecir_batch = Button(self.ventana,text="Predecir Tandas",command=self.predecirBatch,state='disabled')
+        self.predecir_batch.place(x=230,y=550)
 
         self.animal1_str = StringVar()
         self.animal1_label = Label(self.ventana,text="Animal 1").place(x=10,y=70)
@@ -96,7 +103,6 @@ class Clasificador:
 
         self.guardar = Button(self.ventana,text="Guardar",command=self.nombres)
         self.guardar.place(x=680,y=70)
-
 
 
         # create the canvas, size in pixels
@@ -114,7 +120,7 @@ class Clasificador:
             self.animal2_entry.config(state='readonly')
             print(self.animales)
             self.abrir.config(state="normal")
-            self.abrir.config(text=self.animales[self.pos_vals])
+            self.abrir.config(text="Abrir "+self.animales[self.pos_vals])
             self.guardar.config(text="Guardado")
             self.guardar.config(state="disabled")
 
@@ -128,7 +134,7 @@ class Clasificador:
         self.y.extend( repeat( self.vals[self.pos_vals]  , len(FV) ) )
         self.pos_vals = self.pos_vals+1
         if( self.pos_vals < self.cant_max):
-            self.abrir.config(text=self.animales[self.pos_vals])
+            self.abrir.config(text="Abrir "+self.animales[self.pos_vals])
         else:
             self.abrir.config(text="Listo")
             self.entrenar.config(state="normal")
@@ -138,23 +144,20 @@ class Clasificador:
     def caracteristicasFoto(self,archivo):
         self.ImagenVC.VectorCaracteristico(archivo)
         self.paraPredecir.append([self.ImagenVC.vectorC])
-        #print(self.paraPredecir)
-        #print(lineas)
-        #car = ast.literal_eval(lineas[0])
-        #print([car])
-        #self.predecir = [car]
 
-    def entrenar(self):
+    def entrenarSVM(self):
         if(len(self.x) > 0 and len(self.y) > 0 and len(self.animales) > 0):
             self.clf = svm.SVC()
             self.clf.fit(self.x, self.y)
             print(self.clf)
             self.abrirf.config(state="normal")
             self.predecir.config(state="normal")
+            self.predecir_batch.config(state="normal")
+            self.entrenado = True
         else:
             showerror("Entrenar","Seleccione los directorios")
 
-    def predecir(self):
+    def predecirSVM(self):
         if( len(self.paraPredecir) > 0 ):
             #Ultimo elemento de paraPredecir
             predicho = self.clf.predict( self.paraPredecir[-1] )[0]
@@ -162,6 +165,36 @@ class Clasificador:
             self.printPredichoLabel(predicho)
         else:
             showerror("Predecir","Primero Ingrese una foto para entrenar.")
+
+    def paraPredecirBatch(self,directory):
+        nomb=0
+        if not os.path.exists(self.directorio_tanda):
+            os.makedirs(self.directorio_tanda)
+        imagenes = self.imagenesDirectorio(directory)
+        for i in imagenes:
+            self.caracteristicasFoto(i)
+            self.predecirSVM()
+            self.guardarImagen(i,self.directorio_tanda,nomb)
+            nomb+=1
+
+    def predecirBatch(self):
+        if( self.entrenado == True ):
+            self.ventana.withdraw()
+            directory = askdirectory()
+            self.ventana.deiconify()
+            if directory:
+                try:
+                    print(directory)
+                    self.directoriof.set(directory)
+
+
+                except:
+                    showerror("Abrir Directorio","No se puede abrir el directorio\n'%s'"%directory)
+            self.paraPredecirBatch(directory)
+        else:
+            showerror("Predicir en tanda","Primero entrene.")
+
+
 
     def printPredichoLabel(self,predicho):
         for an in range(0, len(self.vals)):
@@ -176,6 +209,20 @@ class Clasificador:
                 if( i == self.vals[an]):
                     print(i,": Es un ", self.animales[an])
                     break
+
+
+    def guardarImagen(self,imagen,directorio,nombre):
+        im = Image.open(imagen)
+        draw = ImageDraw.Draw(im)
+        for an in range(0, len(self.vals)):
+            if( self.predicho[-1] == self.vals[an]):
+                clasif = "Es un "+self.animales[an]
+                #self.canvas.create_text(120,330,text=clasif,font=("Arial",30))
+                draw.text((0,0),text=clasif,font=self.fnt,fill="black")
+                break
+        path=directorio+str(nombre)+".jpg"
+        im.save(path)
+
 
     def abrirArchivo(self):
 
@@ -227,8 +274,6 @@ class Clasificador:
         # pic's upper left corner (NW) on the canvas is at x=50 y=10
         self.canvas.image = imag
         self.canvas.create_image(0, 0, image=imag, anchor=NW)
-
-
 
 
     def imagenesDirectorio(self,dir):

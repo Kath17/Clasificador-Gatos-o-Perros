@@ -1,8 +1,0 @@
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/shiba_inu_182.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/scottish_terrier_137.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/samoyed_152.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/saint_bernard_130.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/pug_183.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/pug_149.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/pomeranian_160.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/newfoundland_177.jpg

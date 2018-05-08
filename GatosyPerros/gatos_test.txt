@@ -1,7 +1,0 @@
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/Abyssinian_125.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/Bengal_27.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/Bengal_147.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/Birman_67.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/Birman_120.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/Sphynx_245.jpg
-/Users/alejandrolarraondolamchog/Documents/CS-UNSA/IA/images/Siamese_24.jpg

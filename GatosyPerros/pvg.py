@@ -5,6 +5,8 @@ from tkinter.messagebox import showerror
 
 from PIL import ImageTk, Image, ImageDraw, ImageFont
 import os
+import platform
+import subprocess
 import glob
 import ast
 from sklearn import svm
@@ -147,13 +149,15 @@ class Clasificador:
 
     def entrenarSVM(self):
         if(len(self.x) > 0 and len(self.y) > 0 and len(self.animales) > 0):
-            self.clf = svm.SVC()
+            #self.clf = svm.SVC()
+            self.clf = svm.SVC(kernel="linear")
             self.clf.fit(self.x, self.y)
             print(self.clf)
             self.abrirf.config(state="normal")
             self.predecir.config(state="normal")
             self.predecir_batch.config(state="normal")
             self.entrenado = True
+            self.entrenar.config(state="disabled")
         else:
             showerror("Entrenar","Seleccione los directorios")
 
@@ -177,6 +181,12 @@ class Clasificador:
             self.guardarImagen(i,self.directorio_tanda,nomb)
             nomb+=1
 
+        path = os.getcwd()+"/"+self.directorio_tanda
+        print(path)
+        self.open_file( path )
+
+
+
     def predecirBatch(self):
         if( self.entrenado == True ):
             self.ventana.withdraw()
@@ -186,11 +196,11 @@ class Clasificador:
                 try:
                     print(directory)
                     self.directoriof.set(directory)
-
+                    self.paraPredecirBatch(directory)
 
                 except:
                     showerror("Abrir Directorio","No se puede abrir el directorio\n'%s'"%directory)
-            self.paraPredecirBatch(directory)
+
         else:
             showerror("Predicir en tanda","Primero entrene.")
 
@@ -278,6 +288,17 @@ class Clasificador:
 
     def imagenesDirectorio(self,dir):
         return glob.glob(dir+"/*.jpg")
+
+    def open_file(self,path):
+        if platform.system() == "Windows":
+            print("Abriendo: ", path)
+            os.startfile(path)
+        elif platform.system() == "Darwin":
+            print("Abriendo: ", path)
+            subprocess.Popen(["open", path])
+        else:
+            print("Abriendo: ", path)
+            subprocess.Popen(["xdg-open", path])
 
 
 if __name__ == '__main__':

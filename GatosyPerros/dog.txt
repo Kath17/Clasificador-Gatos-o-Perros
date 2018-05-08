@@ -1,5 +1,0 @@
-Dogs/dog1.jpg
-Dogs/dog2.jpg
-Dogs/dog3.jpg
-Dogs/dog4.jpg
-Dogs/dog5.jpg
